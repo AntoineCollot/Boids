@@ -6,10 +6,10 @@ using UnityEngine;
 public class Boid : MonoBehaviour {
 
     [SerializeField]
-    float turnSensitivity;
+    float turnSensitivity = 1;
 
     [SerializeField]
-    float speed;
+    float speed = 10;
 
     [Header("Cohesion")]
 
@@ -17,7 +17,7 @@ public class Boid : MonoBehaviour {
     /// How much the boid should move toward the center
     /// </summary>
     [SerializeField]
-    float cohesionValue;
+    float cohesionValue = 1;
 
     [Header("Avoidance")]
 
@@ -25,13 +25,18 @@ public class Boid : MonoBehaviour {
     /// Minimum distance the boids are allowed to be from each other (this distance isn't guaranted, they will work to keep this distance)
     /// </summary>
     [SerializeField]
-    float minDistance;
+    float minDistance = 1.5f;
 
     /// <summary>
     /// How much the boid will avoid its neighbours
     /// </summary>
     [SerializeField]
-    float avoidanceValue;
+    float avoidanceValue = 1;
+
+    [Header("Obstacle Avoidance")]
+
+    [SerializeField]
+    float obstacleAvoidanceValue = 5;
 
     [Header("Alignement")]
 
@@ -39,20 +44,25 @@ public class Boid : MonoBehaviour {
     /// How much should this boid tend to match neighbours velocity
     /// </summary>
     [SerializeField]
-    float alignementValue;
+    float alignementValue = 1;
 
     [Header("Target")]
 
     [SerializeField]
-    float targetValue;
+    float targetValue = 1;
 
     [SerializeField]
-    float distanceToTarget;
+    float distanceToTarget = 2;
 
     /// <summary>
     /// Neighbours boids
     /// </summary>
     List<Transform> flock = new List<Transform>();
+
+    /// <summary>
+    /// Neighbours boids
+    /// </summary>
+    List<Transform> obstacles = new List<Transform>();
 
     #region Components
     new Rigidbody rigidbody;
@@ -72,7 +82,7 @@ public class Boid : MonoBehaviour {
 
     void Move(Vector3 target = default(Vector3))
     {
-        Vector3 newDirection = Rule_Alignement() + Rule_Cohesion() + Rule_Separation() + Rule_Target(target);
+        Vector3 newDirection = Rule_Alignement() + Rule_Cohesion() + Rule_Separation()+ Rule_Obstacle() + Rule_Target(target);
         newDirection = Vector3.Slerp(this.transform.forward, newDirection, Time.deltaTime * turnSensitivity);
         newDirection.Normalize();
 
@@ -97,7 +107,19 @@ public class Boid : MonoBehaviour {
             }
         }
 
-        return displacement.normalized * avoidanceValue;
+        return displacement.normalized*avoidanceValue;
+    }
+
+    Vector3 Rule_Obstacle()
+    {
+        Vector3 displacementObstacle = Vector3.zero;
+
+        foreach (Transform t in obstacles)
+        {
+            displacementObstacle += (transform.position - t.position);
+        }
+
+        return displacementObstacle.normalized * obstacleAvoidanceValue;
     }
 
     /// <summary>
@@ -146,15 +168,36 @@ public class Boid : MonoBehaviour {
         return toTarget * targetValue;
     }
 
-
+    /// <summary>
+    /// Add the object hit to the flock if it has the same tag, otherwise adds it to the obstacle list
+    /// </summary>
+    /// <param name="other">Collider hit</param>
     private void OnTriggerEnter(Collider other)
     {
-        AddBoidToFlock(other.transform);
+        if(other.tag==gameObject.tag)
+        {
+            AddBoidToFlock(other.transform);
+        }
+        else
+        {
+            obstacles.Add(other.transform);
+        }
     }
 
+    /// <summary>
+    /// Remove the object hit from the list he is in
+    /// </summary>
+    /// <param name="other">Collider hit</param>
     private void OnTriggerExit(Collider other)
     {
-        RemoveBoidFromFlock(other.transform);
+        if (other.tag == gameObject.tag)
+        {
+            RemoveBoidFromFlock(other.transform);
+        }
+        else
+        {
+            obstacles.Remove(other.transform);
+        }
     }
 
     /// <summary>
