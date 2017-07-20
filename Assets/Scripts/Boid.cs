@@ -101,13 +101,18 @@ public class Boid : MonoBehaviour {
     /// <param name="target"></param>
     void Move(Vector3 target = default(Vector3))
     {
+        //Apply the rules to determinate a new direction
         Vector3 newDirection = Rule_Alignement() + Rule_Cohesion() + Rule_Separation()+ Rule_Obstacle() + Rule_Target(target);
+
+        //Smooth this direction
         newDirection = Vector3.Slerp(this.transform.forward, newDirection, Time.deltaTime * turnSensitivity);
         newDirection.Normalize();
 
+        //Rotate the boid (In case the direction is 0, it means rules couldn't be applied, in this case keep going forward)
         if (newDirection != Vector3.zero)
             transform.forward = newDirection;
 
+        //Move the boid forward
         rigidbody.velocity = newDirection * speed;
     }
 
