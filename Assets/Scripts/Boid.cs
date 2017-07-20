@@ -5,9 +5,15 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class Boid : MonoBehaviour {
 
+    /// <summary>
+    /// Rotation speed of the boid
+    /// </summary>
     [SerializeField]
     float turnSensitivity = 1;
 
+    /// <summary>
+    /// Speed of the boid
+    /// </summary>
     [SerializeField]
     float speed = 10;
 
@@ -35,6 +41,9 @@ public class Boid : MonoBehaviour {
 
     [Header("Obstacle Avoidance")]
 
+    /// <summary>
+    /// How much should this boid tend avoid obstacles
+    /// </summary>
     [SerializeField]
     float obstacleAvoidanceValue = 5;
 
@@ -48,9 +57,15 @@ public class Boid : MonoBehaviour {
 
     [Header("Target")]
 
+    /// <summary>
+    /// How much should this boid tend to reach the target
+    /// </summary>
     [SerializeField]
     float targetValue = 1;
 
+    /// <summary>
+    /// Minimum distance from the target at which the boid take it into account, to avoid them getting all stuck in a point
+    /// </summary>
     [SerializeField]
     float distanceToTarget = 2;
 
@@ -80,6 +95,10 @@ public class Boid : MonoBehaviour {
         Move(FlockingSettings.target.position);	
 	}
 
+    /// <summary>
+    /// Called every frame, move the boid according to the rules
+    /// </summary>
+    /// <param name="target"></param>
     void Move(Vector3 target = default(Vector3))
     {
         Vector3 newDirection = Rule_Alignement() + Rule_Cohesion() + Rule_Separation()+ Rule_Obstacle() + Rule_Target(target);
@@ -110,6 +129,10 @@ public class Boid : MonoBehaviour {
         return displacement.normalized*avoidanceValue;
     }
 
+    /// <summary>
+    /// Same as separation but applied to the obstacle list
+    /// </summary>
+    /// <returns></returns>
     Vector3 Rule_Obstacle()
     {
         Vector3 displacementObstacle = Vector3.zero;
@@ -154,6 +177,11 @@ public class Boid : MonoBehaviour {
         return (centerOfMass - transform.position).normalized * cohesionValue;
     }
 
+    /// <summary>
+    /// Tend to move toward a target
+    /// </summary>
+    /// <param name="target"></param>
+    /// <returns></returns>
     Vector3 Rule_Target(Vector3 target)
     {
         if (target == Vector3.zero)
